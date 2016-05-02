@@ -26,13 +26,50 @@ var Promise = require('bluebird');
 // to the function invocation, while errors should be available in the `catch` block
 
 // This function should retrieve the first line of the file at `filePath`
+var pluckFirstLineFromFile = function (filePath,fn) {
+  fs.readFile(filePath,'utf8',function(err,content){
+  	if(err){
+  		fn(err);
+  	} else {
+  		var line = content.split("\n")[0];
+    	fn(err,line);
+  	}
+   });
+};
+
 var pluckFirstLineFromFileAsync = function (filePath) {
-  // TODO
+
+  var p = new Promise(function(resolve, reject){
+      
+      pluckFirstLineFromFile(filePath,function(error, content){
+        if(error){
+          reject(error);
+        } 
+        else{
+          resolve(content);
+        }
+      });
+  });
+
+  return p; 
+  
 };
 
 // This function should retrieve the status code of a GET request to `url`
 var getStatusCodeAsync = function (url) {
-  // TODO
+  var p = new Promise(function(resolve,reject){
+
+    request(url, function (err, response, body) {
+      if(err){
+        reject(err);
+      }else{
+        resolve(response.statusCode);
+      }
+    });
+
+  });
+  
+  return p; 
 };
 
 // Export these functions so we can unit test them
