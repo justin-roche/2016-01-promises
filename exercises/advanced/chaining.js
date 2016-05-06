@@ -51,9 +51,72 @@ var lib = require('../../lib/advancedChainingHelpers.js');
 // Visit the following url to sign up for a free account
 //     https://developer.clarifai.com/accounts/login/?next=/applications/
 // Then, create a new Application and pass your Client Id and Client Secret into the method below
-lib.setImageTaggerCredentials('YOUR_CLIENT_ID', 'YOUR_CLIENT_SECRET')
+lib.setImageTaggerCredentials('AtgvEP70QTSTS-D3MrdK1deuL9Urlpt2E_Zjv9ZX', 'hQ0tsiB685P3MLNyo4s4z4SBCohaYGaIqEBOZqct');
 
 var searchCommonTagsFromGitHubProfiles = function(githubHandles) {
+	
+	var asyncCalls = [];
+	githubHandles.forEach(function(v,i){
+		asyncCalls.push(lib.getGitHubProfile(v));
+	});
+	
+	asyncCalls.push(lib.authenticateImageTagger());
+	var token = null;
+
+	return Promise.all(asyncCalls) //returns values wrapped in promise, so the result has a .then method
+	.then(function(d){
+		token = d.pop(); 
+		return d;                  //returns d wrapped in promise
+	})
+	.then(function(d){
+		return d.map(function(v){
+			return v.avatarUrl;
+		});
+	})
+	.then(function(d){
+		return d;
+	})
+
+						//SCENARIO 1
+	//if the returned value is a promise, the promise wrapper adopts its state
+
+/*	.then(function(d){
+		console.log(lib.tagImage(d[0],token));
+		return lib.tagImage(d[0],token);                   //not a promise...
+	})
+	.then(function(d){
+		console.log(d);                                    //d is a value
+		//console.log(d.then(function(v){console.log(v);})); //d.then is not a function!
+	})*/
+
+						//SCENARIO 2
+	//if the returned value is a value (such as an array), it returns the array as a value
+
+	.then(function(d){
+		return d.map(function(v,i){return lib.tagImage(v,token);});   //returns array of promises wrapped in promise 
+	})
+	.then(function(d){
+		//console.log(d);	
+		return d;											  
+	})
+
+
+	.then(function(d){
+		return Promise.all(d);                                       //returns value wrapped in promise
+	})
+	.then(function(d){
+		//console.log(d);
+		return d; 
+	})
+	.then(function(d){
+		//console.log("data: \n" + d);
+		var r = lib.getIntersection(d);
+		//console.log("result: \n" + r);
+		return r;
+	});												//if it ends in .then, it returns a promise
+
+	
+	
 };
 
 // Export these functions so we can unit test them

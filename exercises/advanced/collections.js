@@ -4,6 +4,8 @@
 
 var Promise = require('bluebird');
 var asyncLib = require('../../lib/asyncLib.js');
+var pc = require('../bare_minimum/promiseConstructor.js');
+var fs = require('fs');
 
 /**
  * A common asyncronous pattern:
@@ -58,8 +60,16 @@ var asyncLib = require('../../lib/asyncLib.js');
   *   })
   */
 
+
 var combineFirstLineOfManyFiles = function (filePaths, writePath) {
- // YOUR CODE HERE
+  var asyncCalls = []; 
+  filePaths.forEach(function(v,i){
+    asyncCalls.push(pc.pluckFirstLineFromFileAsync(v));
+  });
+
+  return Promise.all(asyncCalls)
+  .then(function(d){return d.join("\n");})
+  .then(function(d){return fs.writeFileAsync(writePath,d)});
 };
 
 // Export these functions so we can unit test them

@@ -25,8 +25,22 @@ var Promise = require('bluebird');
  */
 
 var promisify = function (nodeStyleFn) {
- // TODO
-};
+ 
+	 function newFn(arg){
+	 	var p = new Promise(function(resolve,reject){
+	 		nodeStyleFn(arg, determinationFn); 
+
+	 		function determinationFn(err,res){
+	 			if(err){reject(err);}
+	 			else{resolve(res);}
+	 		}
+	 	});
+
+	 	return p;
+	 }
+
+	 return newFn; 
+ };
 
 /******************************************************************
  *                         Promise.all                            *
@@ -44,7 +58,31 @@ var promisify = function (nodeStyleFn) {
  */
 
 var all = function (arrayOfPromises) {
-  // TODO
+
+  var promises = arrayOfPromises;
+  var results = [];
+
+  var p = new Promise(function(resolve,reject){
+
+	arrayOfPromises.forEach(function(v,i){
+	  	  	v.then(function(d){
+	  	  		
+	  			results[i]=d; 
+	  			
+	  			if(results.length === promises.length){
+	  				resolve(results);
+	  			}
+	  		});
+
+	  		v.catch(function(e){
+	  			reject(e);
+	  		});
+ 	 });
+  
+  });
+ 
+  return p;
+
 };
 
 
@@ -59,8 +97,35 @@ var all = function (arrayOfPromises) {
  */
 
 var race = function (arrayOfPromises) {
-  // TODO
-};
+
+  var promises = arrayOfPromises;
+  var settled = false;
+
+  var p = new Promise(function(resolve,reject){
+
+	arrayOfPromises.forEach(function(v,i){
+	  	  	v.then(function(d){
+	  	  		if(settled === false){
+	  	  			settled=true; 
+	  				resolve(d);
+	  			}
+	  		});
+
+	  		v.catch(function(e){
+
+	  			if(settled===false){
+	  				settled=true;
+	  				reject(e);
+	  			}
+	  			
+	  		});
+ 	 });
+  
+  });
+ 
+  return p;
+
+}
 
 // Export these functions so we can unit test them
 module.exports = {

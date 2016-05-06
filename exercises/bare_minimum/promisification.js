@@ -52,15 +52,17 @@ var getGitHubProfile = function (user, callback) {
  request.get(options, function (err, res, body) {
    if (err) {
      callback(err, null);
-   } else if (body.message) {
+   } 
+   else if (body.message) {
      callback(new Error('Failed to get GitHub profile: ' + body.message), null);
-   } else {
+   } 
+   else {
      callback(null, body);
    }
  });
 };
 
-var getGitHubProfileAsync; // TODO
+var getGitHubProfileAsync = Promise.promisify(getGitHubProfile); // TODO
 
 
 // (2) Asyncronous token generation
@@ -71,7 +73,8 @@ var generateRandomToken = function (callback) {
  });
 };
 
-var generateRandomTokenAsync; // TODO
+// TODO
+var generateRandomTokenAsync = Promise.promisify(generateRandomToken); // TODO
 
 
 // (3) Asyncronous file manipulation
@@ -89,7 +92,36 @@ var readFileAndMakeItFunny = function (filePath, callback) {
  });
 };
 
-var readFileAndMakeItFunnyAsync; // TODO
+var _Promisify = function(options,nonPromiseFn){
+
+  //promisify when callback returns single arguments that can be errors or data
+  if (options.callbackArgs ===1){
+    return newFn; 
+  }
+
+  //the new function returned, which must return a promise when invoked
+  function newFn(arg,cb){
+    //signature is to accept one arg and one callback
+
+    var p = new Promise(determinationFn);
+    return p; 
+
+    function determinationFn(resolve,reject){
+        nonPromiseFn(arg,function(cbArg){
+          //the arg (e.g. filepath) is passed through
+          //the callbackArg can be error or data
+          if(cbArg instanceof Error){
+            reject(cbArg);  
+          }else{
+            resolve(cbArg);
+          }  
+        });
+    }
+  }
+
+}
+
+var readFileAndMakeItFunnyAsync = _Promisify({callbackArgs: 1}, readFileAndMakeItFunny);
 
 // Export these functions so we can unit test them
 // and reuse them in later code ;)
